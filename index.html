@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SVVV ChatBot</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f6fc;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      color: #2c7a7b;
+      padding: 20px 0 0 0;
+      margin: 0;
+    }
+    #chatbox {
+      flex: 1;
+      width: 90%;
+      max-width: 600px;
+      margin: 20px auto 10px auto;
+      background-color: #fff;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(44,122,123,0.10);
+      overflow-y: auto;
+      max-height: calc(100vh - 180px);
+    }
+    .botText, .userText {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+    }
+    .botText img, .userText img {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .botText span, .userText span {
+      background-color: #e0f7fa;
+      padding: 12px 18px;
+      border-radius: 20px;
+      font-size: 16px;
+      max-width: 80%;
+      box-shadow: 0 1px 2px rgba(44,122,123,0.06);
+    }
+    .userText {
+      justify-content: flex-end;
+    }
+    .userText span {
+      background-color: #d1e7dd;
+      margin-left: 10px;
+    }
+    #options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin: 18px 0 0 0;
+      justify-content: center;
+    }
+    .option-btn {
+      background: #fff;
+      color: #2c7a7b;
+      border: 2px solid #2c7a7b;
+      border-radius: 14px;
+      padding: 10px 20px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .option-btn:hover {
+      background: #e0f7fa;
+      color: #245f5f;
+      border-color: #245f5f;
+    }
+    .highlighted {
+      background: #ffd60026;
+      border: 2px solid #ffd600;
+      color: #333;
+    }
+    #userInput {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: #fff;
+      box-shadow: 0 -2px 10px rgba(44,122,123,0.08);
+      padding: 12px 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+    }
+    #userInputInner {
+      width: 90%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+    }
+    #textInput {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      margin-right: 10px;
+    }
+    #buttonInput {
+      padding: 10px 22px;
+      font-size: 16px;
+      background-color: #2c7a7b;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    #buttonInput:hover {
+      background-color: #245f5f;
+    }
+  </style>
+</head>
+<body>
+  <h1>SVVV ChatBot App</h1>
+  <div id="chatbox">
+    <div class="botText">
+      <img src="https://img.icons8.com/ios-filled/50/000000/graduation-cap.png" alt="Bot Avatar"/>
+      <span>Hi there! How can I help you today?</span>
+    </div>
+    <div id="options">
+      <button class="option-btn"><img src="https://img.icons8.com/ios-filled/24/graduation-cap.png"/> Courses</button>
+      <button class="option-btn"><img src="https://img.icons8.com/ios-filled/24/task.png"/> How to apply?</button>
+      <button class="option-btn"><img src="https://img.icons8.com/ios-filled/24/calendar.png"/> Open days</button>
+      <button class="option-btn"><img src="https://img.icons8.com/ios-filled/24/chat.png"/> Contact us</button>
+    </div>
+  </div>
+  <div id="userInput">
+    <div id="userInputInner">
+      <input id="textInput" type="text" name="userMessage" placeholder="Type your message..." />
+      <input id="buttonInput" type="submit" value="Send" />
+    </div>
+  </div>
+  <script>
+    function getUserResponse() {
+      var userText = $('#textInput').val();
+      if(userText.trim()=="") return;
+      var userHTML = `
+        <div class='userText'>
+          <span>${userText}</span>
+          <img src="https://img.icons8.com/color/48/user.png" alt="User Avatar"/>
+        </div>`;
+      $('#textInput').val("");
+      $('#chatbox').append(userHTML);
+      $.get("/get", { userMessage: userText }).done(function(data) {
+        var botHTML = `
+          <div class='botText'>
+            <img src="https://img.icons8.com/ios-filled/50/000000/graduation-cap.png" alt="Bot Avatar"/>
+            <span>${data}</span>
+          </div>`;
+        $('#chatbox').append(botHTML);
+        // Auto-scroll to bottom after new message
+        $('#chatbox')[0].scrollTop = $('#chatbox')[0].scrollHeight;
+      });
+      // Auto-scroll to bottom after user message
+      $('#chatbox')[0].scrollTop = $('#chatbox')[0].scrollHeight;
+    }
+    $("#textInput").keypress(function(e) {
+      if (e.which == 13) {
+        getUserResponse();
+      }
+    });
+    $('#buttonInput').click(function() {
+      getUserResponse();
+    });
+    // Highlight option button on click and add fake user message
+    $(".option-btn").click(function() {
+      $(".option-btn").removeClass("highlighted");
+      $(this).addClass("highlighted");
+      var selected = $(this).text().trim();
+      var userHTML = `
+        <div class='userText'>
+          <span class="highlighted">${selected}</span>
+          <img src="https://img.icons8.com/color/48/user.png" alt="User Avatar"/>
+        </div>`;
+      $('#chatbox').append(userHTML);
+      $.get("/get", { userMessage: selected }).done(function(data) {
+        var botHTML = `
+          <div class='botText'>
+            <img src="https://img.icons8.com/ios-filled/50/000000/graduation-cap.png" alt="Bot Avatar"/>
+            <span>${data}</span>
+          </div>`;
+        $('#chatbox').append(botHTML);
+        // Auto-scroll to bottom after new message
+        $('#chatbox')[0].scrollTop = $('#chatbox')[0].scrollHeight;
+      });
+      // Auto-scroll to bottom after user message
+      $('#chatbox')[0].scrollTop = $('#chatbox')[0].scrollHeight;
+    });
+    // Scroll chatbox to bottom on page load
+    $(document).ready(function(){
+      $('#chatbox')[0].scrollTop = $('#chatbox')[0].scrollHeight;
+    });
+  </script>
+</body>
+</html>
